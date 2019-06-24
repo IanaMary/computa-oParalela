@@ -1,6 +1,6 @@
 #include "operacoesSobreMatrizes.h"
 
-float *lerMatriz(char arquivo[], int *linha, int *coluna){    
+double *lerMatriz(char arquivo[], int *linha, int *coluna){    
     FILE *arqMatriz;
     arqMatriz = fopen(arquivo, "r");
     
@@ -19,7 +19,7 @@ float *lerMatriz(char arquivo[], int *linha, int *coluna){
     nColuna = atoi(buffer_linha);
 	*coluna = nColuna;
 
-    float *matriz = (float*) malloc(nLinha*nColuna*sizeof(float));
+    double *matriz = (double*) malloc(nLinha*nColuna*sizeof(double));
     
     //Preenchendo a matriz   
     for(int i = 0; i < nLinha; i++){
@@ -39,18 +39,19 @@ float *lerMatriz(char arquivo[], int *linha, int *coluna){
 	return matriz;
 }
 
-void imprimirMatriz(float *m, int linha, int coluna){
+
+void imprimirMatriz(double *m, int linha, int coluna){
     
     for(int i = 0; i < linha; i++){
         for (int j = 0; j < coluna; j++ ){
-            printf("%.2f ", m[i*coluna + j]);
+            printf("%.4f ", m[i*coluna + j]);
         }
         printf("\n");
     }
     printf("\n");
 }
 
-void escreverMatriz(char *nomeDoArquivo, float *m, int linha, int coluna){
+void escreverMatriz(char *nomeDoArquivo, double *m, int linha, int coluna){
 	FILE *arqResposta;
     arqResposta = fopen(nomeDoArquivo, "w");
     fprintf(arqResposta, "%d\n", linha);
@@ -58,15 +59,15 @@ void escreverMatriz(char *nomeDoArquivo, float *m, int linha, int coluna){
     int i, j;
     for(i = 0; i < linha; i++){
 		for(j = 0; j < coluna-1; j++){
-			fprintf(arqResposta, "%.2f:", m[i*coluna + j]);
+			fprintf(arqResposta, "%.4f:", m[i*coluna + j]);
 		}
-        fprintf(arqResposta, "%.2f\n", m[i*coluna + j]);
+        fprintf(arqResposta, "%.4f\n", m[i*coluna + j]);
     }
     
     fclose(arqResposta);
 }
 
-void liberarMatriz(float *m){
+void liberarMatriz(double *m){
 
 	free(m);
 }

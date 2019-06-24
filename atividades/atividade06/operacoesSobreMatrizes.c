@@ -1,6 +1,8 @@
 #include "operacoesSobreMatrizes.h"
 
-float *lerMatriz(FILE *arqMatriz, int *linha, int *coluna){    
+float *lerMatriz(char arquivo[], int *linha, int *coluna){    
+    FILE *arqMatriz;
+    arqMatriz = fopen(arquivo, "r");
     
     char *pch;
     size_t tamBuffer = 100;
@@ -36,6 +38,7 @@ float *lerMatriz(FILE *arqMatriz, int *linha, int *coluna){
     fclose(arqMatriz);
 	return matriz;
 }
+
 
 void imprimirMatriz(float *m, int linha, int coluna){
     

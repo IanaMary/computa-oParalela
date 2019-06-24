@@ -3,18 +3,20 @@
 #include <stdlib.h>
 #include <string.h>
 #include "operacoesSobreMatrizes.h"
+#include <omp.h>
 
 void multiplicaMatrizes(float *pMatResul, float *pMat1, float *pMat2, int pLinhaMat1, int pLinhaMat2, int pColunaMat1, int pColunaMat2){	    
 	
-	for(int i = 0; i < pLinhaMat1; i++){
-		for(int j = 0; j < pColunaMat2; j++){
+	int i, j, k;
+	#pragma omp parallel for shared(pMat1, pMat2, pLinhaMat1, pColunaMat2, pColunaMat1, pMatResul) private(i, j, k) schedule(static)
+	for(i = 0; i < pLinhaMat1; i++){
+		for(j = 0; j < pColunaMat2; j++){
 			pMatResul[i*pColunaMat2 + j] = 0;
-			for(int k = 0; k < pColunaMat1; k++){
+			for(k = 0; k < pColunaMat1; k++){
 				pMatResul[i*pColunaMat2 + j] = pMatResul[i*pColunaMat2 + j] + pMat1[i*pColunaMat1 + k] * pMat2[k*pColunaMat2 + j];
 			}
 		}
 	}
-	imprimirMatriz(pMatResul, pLinhaMat1, pColunaMat2);	
 }
 
 

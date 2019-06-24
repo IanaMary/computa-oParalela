@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "mpi.h"
+#include <omp.h>
 
 double f(double x) {
    double return_val = 0.0;
@@ -9,12 +10,23 @@ double f(double x) {
    return return_val;
 }
 
-double g(int inicio, int fim, double h, double x) {
-	double integral;
-	for (int i = inicio; i <= fim; i++) {
-         x += h;
-         integral += f(x);
-    } 
+
+
+double g(double inicio, double fim, double h, double x, int n) {
+	double integral=0;
+	
+
+	int i;
+	#pragma omp parallel shared(h, n, inicio, fim) private(i, x) reduction(+:integral)
+	{
+		x = inicio+((fim-inicio)/omp_get_num_threads())*omp_get_thread_num();
+		integral+=(f(x)+f(inicio+((fim-inicio)/omp_get_num_threads())*(omp_get_thread_num()+1)))/2;
+		for (i = 1; i < (n/omp_get_num_threads()); i++) {
+			x += h;
+			integral += f(x);
+		}
+	}
+	integral *= h;
     return integral; 
 }
 
@@ -32,8 +44,8 @@ int main(int argc, char *argv[]) {
 
    int nTask, rank;
 
-   double info[2];
-   int inicio, fim;
+   double info[3];
+   double inicio, fim;
 
    MPI_Init(&argc, &argv);
    MPI_Comm_size(MPI_COMM_WORLD, &nTask);
@@ -41,12 +53,8 @@ int main(int argc, char *argv[]) {
 
    nTrapezios = atoi(argv[3]);
 
-   inicio = rank * ((nTrapezios)/nTask) + 1;
+   inicio = rank * ((nTrapezios)/nTask);
    fim = (rank + 1) *  ((nTrapezios)/nTask);
-
-   if(rank == (nTask-1)){
-      fim = nTrapezios - 1;
-   }
 
 
    if(rank == 0){
@@ -54,31 +62,30 @@ int main(int argc, char *argv[]) {
       b = atof(argv[2]);
   
       h = (b - a) / nTrapezios;
-      integralProcesso = (f(a) + f(b))/2.0;
 
       x = a;
+      
 
       info[0] = a;
-      info[1] = h; 
+      info[1] = h;
+      info[2] = nTrapezios/nTask;
 
-      MPI_Bcast(info, 2, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+      MPI_Bcast(info, 3, MPI_DOUBLE, 0, MPI_COMM_WORLD);
       
-      integralProcesso = g(inicio, fim, h, x);
+      integralProcesso = g(info[0]+inicio*info[1], (info[0]+inicio*info[1])+info[2]*info[1], info[1], x, info[2]);
       
       MPI_Reduce(&integralProcesso, &integralTotal, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
-      integralTotal *= h;
       printf("%d trapézios, estimativa de %.2f a %.2f = %.5f\n", nTrapezios, a, b, integralTotal);
 
 
    }
    else{
-      MPI_Bcast(info, 2, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+	   
+	
+      MPI_Bcast(info, 3, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-      x = info[0] + inicio*info[1];
-      integralProcesso = f(x);
-
-      integralProcesso = g(inicio+1, fim, info[1], x);
+      integralProcesso = g(info[0]+inicio*info[1], (info[0]+inicio*info[1])+info[2]*info[1], info[1], x, info[2]);
 
       MPI_Reduce(&integralProcesso, &integralTotal, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
    }
@@ -87,3 +94,4 @@ int main(int argc, char *argv[]) {
    MPI_Finalize();
    return 0;
 }
+

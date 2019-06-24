@@ -16,8 +16,6 @@ void multiplicaMatrizes(float *pMatResul, float *pMat1, float *pMat2, int pLinha
 
 
 int main(int argc, char *argv[]) {
-	FILE *arqMatriz;
-	FILE *arqVetor;
 	
 	int pLinhaMat1, pColunaMat1, pLinhaMat2, pColunaMat2, rank, nTask = 0;
 	int info[4];
@@ -31,24 +29,10 @@ int main(int argc, char *argv[]) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	
 	
-    arqMatriz = fopen(argv[1], "r");
-    arqVetor = fopen(argv[2], "r");
-    
-    
-
-
-    
-    if((arqMatriz == NULL) && (arqVetor == NULL)){
-        printf("Problema no arquivo\n");
-        return 0;
-    }
-    
-   
-    
     
     if(rank == 0) {
-		pMat1 = lerMatriz(arqMatriz, &pLinhaMat1, &pColunaMat1);
-		pMat2 = lerMatriz(arqVetor, &pLinhaMat2, &pColunaMat2); 
+		pMat1 = lerMatriz(argv[1], &pLinhaMat1, &pColunaMat1);
+		pMat2 = lerMatriz(argv[2], &pLinhaMat2, &pColunaMat2); 
 		
 		pMatRes = (float*) malloc(pLinhaMat1*pColunaMat2*sizeof(float));   
 		
@@ -73,6 +57,7 @@ int main(int argc, char *argv[]) {
         }
         
 		escreverMatriz(argv[3] ,pMatRes, pLinhaMat1, pColunaMat2);
+		imprimirMatriz(pMatRes, pLinhaMat1, pColunaMat2);
         
         liberarMatriz(pMat1);
         liberarMatriz(pMat2);
@@ -102,6 +87,7 @@ int main(int argc, char *argv[]) {
         liberarMatriz(pMatRes);
 		 
 	}
+	
     
      MPI_Finalize();
 	
